@@ -72,9 +72,38 @@ class HomeScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Sign Out',
-            onPressed: () async {
-              await FirebaseAuth.instance.signOut();
-              await GoogleSignIn().signOut();
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: const Text('Sign Out'),
+                    content: const Text('Are you sure you want to sign out?'),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+                      ),
+                      TextButton(
+                        onPressed: () async {
+                          Navigator.of(context).pop();
+                          await FirebaseAuth.instance.signOut();
+                          await GoogleSignIn().signOut();
+                          
+                          // If they used "Skip Dev Mode", force them back to Login
+                          if (FirebaseAuth.instance.currentUser == null && context.mounted) {
+                            Navigator.of(context).pushReplacement(
+                              MaterialPageRoute(builder: (context) => const LoginScreen()),
+                            );
+                          }
+                        },
+                        child: const Text('Sign Out', style: TextStyle(color: Colors.deepOrange, fontWeight: FontWeight.bold)),
+                      ),
+                    ],
+                  );
+                },
+              );
             },
           ),
         ],

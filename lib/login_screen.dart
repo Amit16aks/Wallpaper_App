@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'main.dart'; 
+import 'main.dart';
+import 'phone_login_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -10,8 +11,25 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStateMixin {
   bool _isLoading = false;
+  late AnimationController _animationController;
+
+  @override
+  void initState() {
+    super.initState();
+    // 40-second continuous rotation for the background mandalas
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 40),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
 
   Future<void> _signInWithGoogle() async {
     setState(() {
@@ -19,34 +37,27 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      // 1. Trigger the authentication flow
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-
       if (googleUser == null) {
-        // The user canceled the sign-in
         setState(() {
           _isLoading = false;
         });
-        return;
+        return; // User canceled
       }
 
-      // 2. Obtain the auth details from the request
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-
-      // 3. Create a new credential
       final OAuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
-      // 4. Once signed in, Firebase auth state will automatically change
       await FirebaseAuth.instance.signInWithCredential(credential);
-      
+      // Navigation is handled automatically by the StreamBuilder in main.dart
     } catch (e) {
       debugPrint("Error signing in with Google: $e");
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to sign in. Please try again.')),
+          SnackBar(content: Text('Failed to sign in: $e')),
         );
       }
     } finally {
@@ -62,77 +73,133 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.deepOrange.shade50,
-      body: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.deepOrange.withOpacity(0.2),
-                        blurRadius: 20,
-                        spreadRadius: 5,
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.diamond_outlined, // Placeholder for premium icon
-                    size: 80,
-                    color: Colors.deepOrange,
-                  ),
-                ),
-                const SizedBox(height: 32),
-                const Text(
-                  'Welcome to Daily Darshan',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.deepOrange,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Sign in to unlock premium wallpapers, save your favorites, and download video statuses.',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.black87,
-                    height: 1.5,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 48),
-                _isLoading
-                    ? const CircularProgressIndicator(color: Colors.deepOrange)
-                    : ElevatedButton.icon(
-                        onPressed: _signInWithGoogle,
-                        icon: const Icon(Icons.login),
-                        label: const Text(
-                          'Sign in with Google',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          backgroundColor: Colors.deepOrange,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 24, vertical: 16),
-                          elevation: 4,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                        ),
-                      ),
-              ],
+      body: Stack(
+        children: [
+          // Animated Background Mandala 1 (Top Left)
+          Positioned(
+            top: -150,
+            left: -150,
+            child: RotationTransition(
+              turns: _animationController,
+              child: Icon(
+                Icons.brightness_7, // Acts as a beautiful floral/mandala pattern
+                size: 500,
+                color: Colors.deepOrange.withOpacity(0.06),
+              ),
             ),
           ),
-        ),
+          
+          // Animated Background Mandala 2 (Bottom Right, rotating opposite direction)
+          Positioned(
+            bottom: -200,
+            right: -200,
+            child: RotationTransition(
+              turns: Tween(begin: 1.0, end: 0.0).animate(_animationController),
+              child: Icon(
+                Icons.brightness_low,
+                size: 600,
+                color: Colors.deepOrange.withOpacity(0.08),
+              ),
+            ),
+          ),
+          
+          // Original UI Layout
+          Center(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Transparent Ganesha Logo
+                    Image.asset(
+                      'assets/images/ganesha.png',
+                      height: 140,
+                    ),
+                    const SizedBox(height: 24),
+                    const Text(
+                      'Welcome to Sanatani Astha',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.deepOrange,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Begin your spiritual journey with daily divine darshan.',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.black87,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 48),
+                    _isLoading
+                        ? const CircularProgressIndicator(color: Colors.deepOrange)
+                        : Column(
+                            children: [
+                              ElevatedButton.icon(
+                                onPressed: _signInWithGoogle,
+                                icon: const Icon(Icons.login),
+                                label: const Text(
+                                  'Sign in with Google',
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  foregroundColor: Colors.white,
+                                  backgroundColor: Colors.deepOrange,
+                                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                                  elevation: 4,
+                                  minimumSize: const Size(250, 50),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(30),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              OutlinedButton.icon(
+                                onPressed: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(builder: (context) => const PhoneLoginScreen()),
+                                  );
+                                },
+                                icon: const Icon(Icons.phone),
+                                label: const Text(
+                                  'Continue with Phone',
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                ),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: Colors.deepOrange,
+                                  side: const BorderSide(color: Colors.deepOrange, width: 2),
+                                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                                  minimumSize: const Size(250, 50),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(30),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                    const SizedBox(height: 16),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(builder: (context) => const HomeScreen()),
+                        );
+                      },
+                      child: const Text(
+                        'Skip (Dev Mode)',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
