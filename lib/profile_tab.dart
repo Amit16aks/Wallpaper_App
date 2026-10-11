@@ -365,9 +365,9 @@ class _ProfileTabState extends State<ProfileTab> {
 
   // --- Suggest a Mandir Interactive Form ---
   void _showSuggestMandirForm() {
-    final mandirNameController = TextEditingController(text: 'Somnath Mahadev Mandir');
-    final deityController = TextEditingController(text: 'Mahadev / Shiva');
-    final locationController = TextEditingController(text: 'Prabhas Patan, Gujarat');
+    final mandirNameController = TextEditingController();
+    final deityController = TextEditingController();
+    final locationController = TextEditingController();
     final noteController = TextEditingController();
 
     showModalBottomSheet(
@@ -419,8 +419,22 @@ class _ProfileTabState extends State<ProfileTab> {
                   decoration: InputDecoration(
                     labelText: AppLanguage.tr('suggest_name_label'),
                     hintText: 'e.g. Somnath Mahadev Mandir',
+                    hintStyle: TextStyle(color: Colors.grey[500], fontSize: 13),
+                    filled: true,
+                    fillColor: const Color(0xFFF4F4F6),
                     prefixIcon: const Icon(Icons.place, color: Colors.deepOrange),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: Colors.grey.shade300),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: Colors.grey.shade300),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: const BorderSide(color: Colors.deepOrange, width: 1.5),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -430,8 +444,22 @@ class _ProfileTabState extends State<ProfileTab> {
                   decoration: InputDecoration(
                     labelText: AppLanguage.tr('suggest_deity_label'),
                     hintText: 'e.g. Mahadev / Shiva',
+                    hintStyle: TextStyle(color: Colors.grey[500], fontSize: 13),
+                    filled: true,
+                    fillColor: const Color(0xFFF4F4F6),
                     prefixIcon: const Icon(Icons.auto_awesome, color: Colors.deepOrange),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: Colors.grey.shade300),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: Colors.grey.shade300),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: const BorderSide(color: Colors.deepOrange, width: 1.5),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -441,8 +469,22 @@ class _ProfileTabState extends State<ProfileTab> {
                   decoration: InputDecoration(
                     labelText: AppLanguage.tr('suggest_city_label'),
                     hintText: 'e.g. Prabhas Patan, Gujarat',
+                    hintStyle: TextStyle(color: Colors.grey[500], fontSize: 13),
+                    filled: true,
+                    fillColor: const Color(0xFFF4F4F6),
                     prefixIcon: const Icon(Icons.location_city, color: Colors.deepOrange),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: Colors.grey.shade300),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: Colors.grey.shade300),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: const BorderSide(color: Colors.deepOrange, width: 1.5),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -453,8 +495,22 @@ class _ProfileTabState extends State<ProfileTab> {
                   decoration: InputDecoration(
                     labelText: AppLanguage.tr('suggest_note_label'),
                     hintText: 'Any sacred history, aarti timing, or photo tip...',
+                    hintStyle: TextStyle(color: Colors.grey[500], fontSize: 13),
+                    filled: true,
+                    fillColor: const Color(0xFFF4F4F6),
                     prefixIcon: const Icon(Icons.notes, color: Colors.deepOrange),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: Colors.grey.shade300),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: Colors.grey.shade300),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: const BorderSide(color: Colors.deepOrange, width: 1.5),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 20),
