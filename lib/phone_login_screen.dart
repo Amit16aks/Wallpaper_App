@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'main.dart'; // To navigate to HomeScreen
+import 'navigation_screen.dart';
 
 class PhoneLoginScreen extends StatefulWidget {
   const PhoneLoginScreen({super.key});
@@ -46,7 +46,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
           await FirebaseAuth.instance.signInWithCredential(credential);
           if (mounted) {
             Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (context) => const HomeScreen()),
+              MaterialPageRoute(builder: (context) => const NavigationScreen()),
               (route) => false,
             );
           }
@@ -110,7 +110,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
       
       if (mounted) {
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
+          MaterialPageRoute(builder: (context) => const NavigationScreen()),
           (route) => false,
         );
       }

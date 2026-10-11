@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'main.dart';
+import 'navigation_screen.dart';
 import 'phone_login_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -186,7 +186,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                     TextButton(
                       onPressed: () {
                         Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(builder: (context) => const HomeScreen()),
+                          MaterialPageRoute(builder: (context) => const NavigationScreen()),
                         );
                       },
                       child: const Text(
