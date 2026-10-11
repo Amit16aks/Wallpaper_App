@@ -4,6 +4,7 @@ import 'full_screen_image.dart';
 import 'divine_data.dart';
 import 'typewriter_search_hint.dart';
 import 'app_localizations.dart';
+import 'app_membership.dart';
 
 class HomeTab extends StatefulWidget {
   final void Function(int index)? onTabSelected;
@@ -32,6 +33,7 @@ class _HomeTabState extends State<HomeTab> {
   @override
   void initState() {
     super.initState();
+    AppMembership.currentPlan.addListener(_onPlanChanged);
     _searchController.addListener(() {
       final query = _searchController.text.trim();
       setState(() {
@@ -43,8 +45,13 @@ class _HomeTabState extends State<HomeTab> {
     });
   }
 
+  void _onPlanChanged() {
+    if (mounted) setState(() {});
+  }
+
   @override
   void dispose() {
+    AppMembership.currentPlan.removeListener(_onPlanChanged);
     _searchController.dispose();
     super.dispose();
   }
@@ -664,14 +671,30 @@ class _HomeTabState extends State<HomeTab> {
                               Positioned(
                                 top: 8,
                                 right: 8,
-                                child: Container(
-                                  padding: const EdgeInsets.all(4),
-                                  decoration: const BoxDecoration(
-                                    color: Colors.amber,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(Icons.workspace_premium, size: 14, color: Colors.black87),
-                                ),
+                                child: AppMembership.isGold
+                                    ? Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF2E7D32),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: const Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(Icons.lock_open, size: 10, color: Colors.white),
+                                            SizedBox(width: 3),
+                                            Text('4K VIP', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
+                                          ],
+                                        ),
+                                      )
+                                    : Container(
+                                        padding: const EdgeInsets.all(4),
+                                        decoration: const BoxDecoration(
+                                          color: Colors.amber,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(Icons.workspace_premium, size: 14, color: Colors.black87),
+                                      ),
                               ),
                             // Title & Download stats at bottom
                             Positioned(

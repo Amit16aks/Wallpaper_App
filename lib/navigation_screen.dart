@@ -44,7 +44,10 @@ class _NavigationScreenState extends State<NavigationScreen> {
         ];
 
         return Scaffold(
-          body: tabs[_currentIndex],
+          body: IndexedStack(
+            index: _currentIndex,
+            children: tabs,
+          ),
           bottomNavigationBar: NavigationBar(
             selectedIndex: _currentIndex,
             onDestinationSelected: (int index) {

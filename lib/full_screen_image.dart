@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'app_membership.dart';
 
 class FullScreenScreen extends StatelessWidget {
   final String imageUrl;
@@ -80,6 +81,7 @@ class FullScreenScreen extends StatelessWidget {
               const SizedBox(height: 18),
               ElevatedButton(
                 onPressed: () {
+                  AppMembership.setPlan('Gold');
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -110,168 +112,216 @@ class FullScreenScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          // 1. Wallpaper Image
-          Hero(
-            tag: imageUrl,
-            child: InteractiveViewer(
-              child: CachedNetworkImage(
-                imageUrl: imageUrl,
-                httpHeaders: const {'User-Agent': 'SanataniAstha/1.0 (Android)'},
-                fit: BoxFit.contain,
-                placeholder: (context, url) => const Center(
-                  child: CircularProgressIndicator(color: Colors.deepOrange),
-                ),
-                errorWidget: (context, url, error) => const Center(
-                  child: Icon(Icons.broken_image, color: Colors.white, size: 50),
-                ),
-              ),
-            ),
-          ),
+    return ValueListenableBuilder<String>(
+      valueListenable: AppMembership.currentPlan,
+      builder: (context, plan, _) {
+        final isUnlocked = !isPremium || AppMembership.isGold;
 
-          // 2. Top Bar with Back Button & Deity Tag
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              padding: EdgeInsets.only(
-                top: MediaQuery.of(context).padding.top + 8,
-                left: 16,
-                right: 16,
-                bottom: 16,
-              ),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Colors.black.withOpacity(0.8), Colors.transparent],
-                ),
-              ),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    backgroundColor: Colors.black45,
-                    child: IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.white),
-                      onPressed: () => Navigator.pop(context),
+        return Scaffold(
+          backgroundColor: Colors.black,
+          body: Stack(
+            fit: StackFit.expand,
+            children: [
+              // 1. Wallpaper Image
+              Hero(
+                tag: imageUrl,
+                child: InteractiveViewer(
+                  child: CachedNetworkImage(
+                    imageUrl: imageUrl,
+                    httpHeaders: const {'User-Agent': 'SanataniAstha/1.0 (Android)'},
+                    fit: BoxFit.contain,
+                    placeholder: (context, url) => const Center(
+                      child: CircularProgressIndicator(color: Colors.deepOrange),
+                    ),
+                    errorWidget: (context, url, error) => const Center(
+                      child: Icon(Icons.broken_image, color: Colors.white, size: 50),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  if (deity != null)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.deepOrange.withOpacity(0.8),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        deity!,
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
-                      ),
-                    ),
-                  const Spacer(),
-                  if (isPremium)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.amber,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Row(
-                        children: [
-                          Icon(Icons.workspace_premium, size: 14, color: Colors.black),
-                          SizedBox(width: 4),
-                          Text('Gold', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 11)),
-                        ],
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ),
-
-          // 3. Bottom Bar with Title & Action Buttons
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              padding: EdgeInsets.only(
-                left: 20,
-                right: 20,
-                bottom: MediaQuery.of(context).padding.bottom + 16,
-                top: 24,
-              ),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.bottomCenter,
-                  end: Alignment.topCenter,
-                  colors: [Colors.black.withOpacity(0.9), Colors.transparent],
                 ),
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (title != null) ...[
-                    Text(
-                      title!,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+
+              // 2. Top Bar with Back Button & Deity Tag
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                  padding: EdgeInsets.only(
+                    top: MediaQuery.of(context).padding.top + 8,
+                    left: 16,
+                    right: 16,
+                    bottom: 16,
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Colors.black.withOpacity(0.8), Colors.transparent],
                     ),
-                    const SizedBox(height: 16),
-                  ],
-                  Row(
+                  ),
+                  child: Row(
                     children: [
-                      // Share Button
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Sharing wallpaper with "Sanatani Astha" watermark! Upgrade to Gold for clean sharing.'),
-                              ),
-                            );
-                          },
-                          icon: const Icon(Icons.share, color: Colors.white),
-                          label: const Text('Share', style: TextStyle(color: Colors.white)),
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: Colors.white30),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                          ),
+                      CircleAvatar(
+                        backgroundColor: Colors.black45,
+                        child: IconButton(
+                          icon: const Icon(Icons.arrow_back, color: Colors.white),
+                          onPressed: () => Navigator.pop(context),
                         ),
                       ),
                       const SizedBox(width: 12),
-                      // Download / Gold Paywall Button
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () => _showGoldSubscriptionSheet(context),
-                          icon: const Icon(Icons.download, color: Colors.white),
-                          label: const Text('Download 4K', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.deepOrange,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
+                      if (deity != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.deepOrange.withOpacity(0.8),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            deity!,
+                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
                           ),
                         ),
+                      const Spacer(),
+                      if (isPremium)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppMembership.isGold ? const Color(0xFF2E7D32) : Colors.amber,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                AppMembership.isGold ? Icons.lock_open : Icons.workspace_premium,
+                                size: 14,
+                                color: AppMembership.isGold ? Colors.white : Colors.black,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                AppMembership.isGold ? 'UNLOCKED' : 'Gold',
+                                style: TextStyle(
+                                  color: AppMembership.isGold ? Colors.white : Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // 3. Bottom Bar with Title & Action Buttons
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                  padding: EdgeInsets.only(
+                    left: 20,
+                    right: 20,
+                    bottom: MediaQuery.of(context).padding.bottom + 16,
+                    top: 24,
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                      colors: [Colors.black.withOpacity(0.9), Colors.transparent],
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (title != null) ...[
+                        Text(
+                          title!,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                      Row(
+                        children: [
+                          // Share Button
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () {
+                                if (AppMembership.isGold) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('🎉 Sharing pristine 4K wallpaper with no watermarks! (Gold Pass Benefit) 🙏'),
+                                      backgroundColor: Colors.green,
+                                    ),
+                                  );
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Sharing wallpaper with "Sanatani Astha" watermark! Upgrade to Gold for clean sharing.'),
+                                    ),
+                                  );
+                                }
+                              },
+                              icon: const Icon(Icons.share, color: Colors.white),
+                              label: const Text('Share', style: TextStyle(color: Colors.white)),
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(color: Colors.white30),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          // Download / Gold Paywall Button
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                if (isUnlocked) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        AppMembership.isGold
+                                            ? '🎉 4K Divine Wallpaper downloaded in original resolution without watermark! (Gold Pass Benefit) 🙏'
+                                            : '📥 Divine Wallpaper downloaded successfully! 🙏',
+                                      ),
+                                      backgroundColor: Colors.green,
+                                    ),
+                                  );
+                                } else {
+                                  _showGoldSubscriptionSheet(context);
+                                }
+                              },
+                              icon: Icon(
+                                isUnlocked ? Icons.download_done : Icons.workspace_premium,
+                                color: Colors.white,
+                              ),
+                              label: Text(
+                                isUnlocked ? 'Download 4K' : 'Unlock 4K (₹29)',
+                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: isUnlocked ? Colors.deepOrange : Colors.amber.shade800,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

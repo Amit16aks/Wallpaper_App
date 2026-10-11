@@ -3,6 +3,7 @@ import 'package:video_player/video_player.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'divine_data.dart';
 import 'app_localizations.dart';
+import 'app_membership.dart';
 
 class ClipItem {
   final String id;
@@ -217,16 +218,20 @@ class _ClipPlayerItemState extends State<ClipPlayerItem> {
                         Text('Full Access to All 4K Wallpapers & Clips', style: TextStyle(color: Colors.white70, fontSize: 12)),
                       ],
                     ),
-                    const Text('₹99/mo', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20)),
+                    Text('₹99/mo', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20)),
                   ],
                 ),
               ),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () {
+                  AppMembership.setPlan('Diamond');
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Payment gateway integration in next step!')),
+                    const SnackBar(
+                      content: Text('🎉 Congratulations! You have unlocked Diamond VIP Plan!'),
+                      backgroundColor: Colors.green,
+                    ),
                   );
                 },
                 style: ElevatedButton.styleFrom(
@@ -394,12 +399,21 @@ class _ClipPlayerItemState extends State<ClipPlayerItem> {
                 ),
                 const SizedBox(height: 18),
 
-                // Share Button (With Watermark for Free users)
+                // Share Button (With Watermark for Free users, Clean for VIP)
                 IconButton(
                   onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Sharing with "Sanatani Astha" watermark for free users!')),
-                    );
+                    if (AppMembership.isDiamond) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('🎉 Sharing HD Divine Clip in full bitrate with clean audio! (Diamond VIP Benefit) 🙏'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Sharing with "Sanatani Astha" watermark for free users! Upgrade to Diamond VIP for clean HD sharing.')),
+                      );
+                    }
                   },
                   icon: const Icon(Icons.share, color: Colors.white, size: 30),
                 ),
@@ -409,38 +423,59 @@ class _ClipPlayerItemState extends State<ClipPlayerItem> {
                 ),
                 const SizedBox(height: 18),
 
-                // Download Button (Locked for Free users -> Paywall)
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () => _showSubscriptionPaywall('download'),
-                  child: Column(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.amber,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.amber.withOpacity(0.4),
-                              blurRadius: 8,
-                              spreadRadius: 2,
+                // Download Button (Diamond VIP Unlocked vs Paywall)
+                ValueListenableBuilder<String>(
+                  valueListenable: AppMembership.currentPlan,
+                  builder: (context, plan, _) {
+                    final isVip = AppMembership.isDiamond;
+
+                    return GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () {
+                        if (isVip) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('📥 Downloading HD Divine Clip without watermark! (Diamond VIP Benefit) 🙏'),
+                              backgroundColor: Colors.green,
                             ),
-                          ],
-                        ),
-                        child: const Icon(Icons.download, color: Colors.black87, size: 24),
-                      ),
-                      const SizedBox(height: 4),
-                      const Row(
-                        mainAxisSize: MainAxisSize.min,
+                          );
+                        } else {
+                          _showSubscriptionPaywall('download');
+                        }
+                      },
+                      child: Column(
                         children: [
-                          Icon(Icons.workspace_premium, color: Colors.amber, size: 12),
-                          SizedBox(width: 2),
-                          Text('Diamond', style: TextStyle(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.bold)),
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: isVip ? const Color(0xFF00B4D8) : Colors.amber,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: (isVip ? const Color(0xFF00B4D8) : Colors.amber).withOpacity(0.4),
+                                  blurRadius: 8,
+                                  spreadRadius: 2,
+                                ),
+                              ],
+                            ),
+                            child: Icon(isVip ? Icons.download_done : Icons.download, color: isVip ? Colors.white : Colors.black87, size: 24),
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(isVip ? Icons.diamond : Icons.workspace_premium, color: isVip ? const Color(0xFF00B4D8) : Colors.amber, size: 12),
+                              const SizedBox(width: 2),
+                              Text(
+                                isVip ? 'VIP HD' : 'Diamond',
+                                style: TextStyle(color: isVip ? const Color(0xFF00B4D8) : Colors.amber, fontSize: 10, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
                         ],
                       ),
-                    ],
-                  ),
+                    );
+                  },
                 ),
               ],
             ),

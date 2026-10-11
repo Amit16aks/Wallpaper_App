@@ -7,6 +7,7 @@ import 'divine_data.dart';
 import 'full_screen_image.dart';
 import 'app_localizations.dart';
 import 'audio_helper.dart';
+import 'app_membership.dart';
 
 class ProfileTab extends StatefulWidget {
   const ProfileTab({super.key});
@@ -16,8 +17,8 @@ class ProfileTab extends StatefulWidget {
 }
 
 class _ProfileTabState extends State<ProfileTab> {
-  // Membership Plan: 'Free', 'Gold', or 'Diamond'
-  String _currentPlan = 'Free';
+  // Membership Plan: 'Free', 'Gold', or 'Diamond' (Synced with AppMembership)
+  late String _currentPlan;
 
   // Collection Segment: 0 -> Favorites, 1 -> Downloads
   int _selectedCollectionTab = 0;
@@ -57,10 +58,26 @@ class _ProfileTabState extends State<ProfileTab> {
   @override
   void initState() {
     super.initState();
+    _currentPlan = AppMembership.currentPlan.value;
+    AppMembership.currentPlan.addListener(_onPlanChanged);
     _favoriteWallpapers = DivineRepository.allWallpapers.take(8).toList();
     _downloadedWallpapers = DivineRepository.allWallpapers.skip(8).take(6).toList();
     _selectedLanguage = AppLanguage.currentLanguage.value;
     _templeBellSound = AudioHelper.isBellSoundEnabled;
+  }
+
+  void _onPlanChanged() {
+    if (mounted) {
+      setState(() {
+        _currentPlan = AppMembership.currentPlan.value;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    AppMembership.currentPlan.removeListener(_onPlanChanged);
+    super.dispose();
   }
 
   void _showUpgradeSheet() {
@@ -108,7 +125,7 @@ class _ProfileTabState extends State<ProfileTab> {
               // Gold Plan Option (₹29/mo)
               InkWell(
                 onTap: () {
-                  setState(() => _currentPlan = 'Gold');
+                  AppMembership.setPlan('Gold');
                   Navigator.pop(context);
                   _showPlanActivatedSnackBar('Gold');
                 },
@@ -165,7 +182,7 @@ class _ProfileTabState extends State<ProfileTab> {
               // Diamond Plan Option (₹99/mo)
               InkWell(
                 onTap: () {
-                  setState(() => _currentPlan = 'Diamond');
+                  AppMembership.setPlan('Diamond');
                   Navigator.pop(context);
                   _showPlanActivatedSnackBar('Diamond');
                 },
@@ -222,7 +239,7 @@ class _ProfileTabState extends State<ProfileTab> {
               // Free Dev Tier Reset
               TextButton(
                 onPressed: () {
-                  setState(() => _currentPlan = 'Free');
+                  AppMembership.resetToFree();
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Switched back to Free Tier (Dev Mode)')),
@@ -691,29 +708,38 @@ class _ProfileTabState extends State<ProfileTab> {
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   const SizedBox(height: 8),
-                                  // Streak Chip
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: Colors.orange.shade50,
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(color: Colors.orange.shade200),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Text('🔥', style: TextStyle(fontSize: 12)),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          AppLanguage.tr('streak_badge'),
-                                          style: const TextStyle(
-                                            color: Colors.deepOrange,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 11,
-                                          ),
+                                  Wrap(
+                                    spacing: 8,
+                                    runSpacing: 6,
+                                    crossAxisAlignment: WrapCrossAlignment.center,
+                                    children: [
+                                      // Streak Chip
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: Colors.orange.shade50,
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: Border.all(color: Colors.orange.shade200),
                                         ),
-                                      ],
-                                    ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Text('🔥', style: TextStyle(fontSize: 12)),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              AppLanguage.tr('streak_badge'),
+                                              style: const TextStyle(
+                                                color: Colors.deepOrange,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 11,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      // Pass Tag Chip
+                                      _buildDevoteePassTagChip(_currentPlan),
+                                    ],
                                   ),
                                 ],
                               ),
@@ -1134,30 +1160,36 @@ class _ProfileTabState extends State<ProfileTab> {
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
-                    onPressed: () {
-                      setState(() => _currentPlan = 'Gold');
-                      _showPlanActivatedSnackBar('Gold');
-                    },
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Colors.amber),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  child: SizedBox(
+                    height: 42,
+                    child: OutlinedButton(
+                      onPressed: () {
+                        AppMembership.setPlan('Gold');
+                        _showPlanActivatedSnackBar('Gold');
+                      },
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.amber, width: 1.5),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: Text(AppLanguage.tr('upgrade_gold_btn'), style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 12)),
                     ),
-                    child: Text(AppLanguage.tr('upgrade_gold_btn'), style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 12)),
                   ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      setState(() => _currentPlan = 'Diamond');
-                      _showPlanActivatedSnackBar('Diamond');
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.deepOrange,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  child: SizedBox(
+                    height: 42,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        AppMembership.setPlan('Diamond');
+                        _showPlanActivatedSnackBar('Diamond');
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.deepOrange,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: Text(AppLanguage.tr('upgrade_diamond_btn'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
                     ),
-                    child: Text(AppLanguage.tr('upgrade_diamond_btn'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
                   ),
                 ),
               ],
@@ -1218,14 +1250,40 @@ class _ProfileTabState extends State<ProfileTab> {
             Row(
               children: [
                 Expanded(
-                  child: ElevatedButton(
-                    onPressed: _showUpgradeSheet,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colors.deepOrange.shade800,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  child: SizedBox(
+                    height: 42,
+                    child: OutlinedButton(
+                      onPressed: () {
+                        AppMembership.resetToFree();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Switched back to Free Tier (Dev Mode)')),
+                        );
+                      },
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.white70, width: 1.5),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text('Reset to Free (Dev)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
                     ),
-                    child: Text(AppLanguage.tr('upgrade_clips_prompt'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: SizedBox(
+                    height: 42,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        AppMembership.setPlan('Diamond');
+                        _showPlanActivatedSnackBar('Diamond');
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.deepOrange.shade900,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text('Upgrade Diamond VIP', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
+                    ),
                   ),
                 ),
               ],
@@ -1287,17 +1345,119 @@ class _ProfileTabState extends State<ProfileTab> {
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
-                    onPressed: _showUpgradeSheet,
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Colors.white70),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  child: SizedBox(
+                    height: 42,
+                    child: OutlinedButton(
+                      onPressed: () {
+                        AppMembership.resetToFree();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Switched back to Free Tier (Dev Mode)')),
+                        );
+                      },
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.white70, width: 1.5),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text('Reset to Free (Dev)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
                     ),
-                    child: Text(AppLanguage.tr('manage_vip'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: SizedBox(
+                    height: 42,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        AppMembership.setPlan('Gold');
+                        _showPlanActivatedSnackBar('Gold');
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.amber,
+                        foregroundColor: Colors.black87,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text('Switch to Gold (Dev)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
+                    ),
                   ),
                 ),
               ],
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  Widget _buildDevoteePassTagChip(String plan) {
+    if (plan == 'Diamond') {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1E3C72).withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFF1E3C72), width: 1.2),
+        ),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('💎', style: TextStyle(fontSize: 11)),
+            SizedBox(width: 4),
+            Text(
+              'Diamond VIP Devotee',
+              style: TextStyle(
+                color: Color(0xFF1E3C72),
+                fontWeight: FontWeight.bold,
+                fontSize: 11,
+              ),
+            ),
+          ],
+        ),
+      );
+    } else if (plan == 'Gold') {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: Colors.amber.shade50,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.amber.shade700, width: 1.2),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('🌟', style: TextStyle(fontSize: 11)),
+            const SizedBox(width: 4),
+            Text(
+              'Gold Pass Devotee',
+              style: TextStyle(
+                color: Colors.amber.shade900,
+                fontWeight: FontWeight.bold,
+                fontSize: 11,
+              ),
+            ),
+          ],
+        ),
+      );
+    } else {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.shade400, width: 1.2),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('🛡️', style: TextStyle(fontSize: 11)),
+            const SizedBox(width: 4),
+            Text(
+              AppLanguage.tr('free_tier_title'),
+              style: TextStyle(
+                color: Colors.grey.shade800,
+                fontWeight: FontWeight.bold,
+                fontSize: 11,
+              ),
             ),
           ],
         ),
