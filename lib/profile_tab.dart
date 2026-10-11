@@ -365,9 +365,9 @@ class _ProfileTabState extends State<ProfileTab> {
 
   // --- Suggest a Mandir Interactive Form ---
   void _showSuggestMandirForm() {
-    final mandirNameController = TextEditingController();
-    final deityController = TextEditingController();
-    final locationController = TextEditingController();
+    final mandirNameController = TextEditingController(text: 'Somnath Mahadev Mandir');
+    final deityController = TextEditingController(text: 'Mahadev / Shiva');
+    final locationController = TextEditingController(text: 'Prabhas Patan, Gujarat');
     final noteController = TextEditingController();
 
     showModalBottomSheet(
@@ -478,7 +478,12 @@ class _ProfileTabState extends State<ProfileTab> {
                           children: [
                             const Text('🪔', style: TextStyle(fontSize: 24)),
                             const SizedBox(width: 8),
-                            Text(AppLanguage.tr('suggest_success_title'), style: const TextStyle(fontWeight: FontWeight.bold)),
+                            Expanded(
+                              child: Text(
+                                AppLanguage.tr('suggest_success_title'),
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                              ),
+                            ),
                           ],
                         ),
                         content: Text(
